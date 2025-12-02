@@ -1,277 +1,626 @@
-import React, { useEffect, useState } from 'react'
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tarot & Onderbewuste – tarotalchemist</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-// Single-file React app skeleton for the Tarot Werkboek Webapp
-// Tailwind classes assumed available. Default export at bottom.
+    <!-- TailwindCSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
-const SAMPLE_COURSE = [
-  { id: 1, title: 'Hoofdstuk 1 — Het Onderbewuste', progress: 0, content: 'Inhoud hoofdstuk 1...' },
-  { id: 2, title: 'Hoofdstuk 2 — Intuïtief Lezen', progress: 0, content: 'Inhoud hoofdstuk 2...' },
-  { id: 3, title: 'Hoofdstuk 3 — De Methode', progress: 0, content: 'Inhoud hoofdstuk 3...' },
-  { id: 4, title: 'Hoofdstuk 4 — Rituelen', progress: 0, content: 'Inhoud hoofdstuk 4...' },
-  { id: 5, title: 'Hoofdstuk 5 — Schaduwwerk', progress: 0, content: 'Inhoud hoofdstuk 5...' },
-  { id: 6, title: 'Hoofdstuk 6 — Integratie', progress: 0, content: 'Inhoud hoofdstuk 6...' }
-]
+    <!-- React 18 + ReactDOM UMD via CDN -->
+    <script
+      crossorigin
+      src="https://unpkg.com/react@18/umd/react.development.js"
+    ></script>
+    <script
+      crossorigin
+      src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"
+    ></script>
 
-const SAMPLE_SPREADS = [
-  { id: 'mirror', name: 'Onderbewuste Spiegel', layout: ['Onder oppervlakte', 'Wat wil aandacht', 'Wat helpt begrijpen'] },
-  { id: 'kompas', name: 'Innerlijk Kompas', layout: ['Huidige staat', 'Blokkade', 'Onbewuste verlangen', 'Wat ik nu nodig heb'] },
-  { id: 'schaduw', name: 'Schaduwtransformatie', layout: ['Mijn schaduw', 'Oorsprong', 'Les', 'Integratie'] }
-]
+    <!-- Babel voor JSX in de browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body class="bg-gray-50">
+    <div id="root"></div>
 
-const MOCK_DECK = [
-  { code: '0', name: 'De Dwaas' },
-  { code: 'I', name: 'De Magiër' },
-  { code: 'II', name: 'De Hogepriesteres' },
-  { code: 'III', name: 'De Keizerin' },
-  { code: 'IV', name: 'De Keizer' },
-  { code: 'V', name: 'De Hogepriester' },
-  { code: 'VI', name: 'De Geliefden' },
-  { code: 'VII', name: 'De Zegewagen' },
-  { code: 'VIII', name: 'Kracht' },
-  { code: 'IX', name: 'De Kluizenaar' }
-]
+    <script type="text/babel">
+      const { useState, useEffect } = React;
 
-// Utility
-function randChoice(arr) {
-  return arr[Math.floor(Math.random() * arr.length)]
-}
+      // --- Data ---
 
-function useLocalStorage(key, initial) {
-  const [state, setState] = useState(() => {
-    try {
-      const v = localStorage.getItem(key)
-      return v ? JSON.parse(v) : initial
-    } catch (e) {
-      return initial
-    }
-  })
-  useEffect(() => {
-    try { localStorage.setItem(key, JSON.stringify(state)) } catch (e) {}
-  }, [key, state])
-  return [state, setState]
-}
+      const SAMPLE_COURSE = [
+        {
+          id: 1,
+          title: "Hoofdstuk 1 — Het Onderbewuste",
+          progress: 0,
+          content:
+            "In dit hoofdstuk verken je wat het onderbewuste is en hoe tarot als spiegel werkt.",
+        },
+        {
+          id: 2,
+          title: "Hoofdstuk 2 — Intuïtief Tarot Lezen",
+          progress: 0,
+          content:
+            "Je leert gevoelens en intuïtie centraal te stellen, in plaats van alleen boekbetekenissen.",
+        },
+        {
+          id: 3,
+          title: "Hoofdstuk 3 — De Onderbewuste Tarotmethode",
+          progress: 0,
+          content:
+            "Stap-voor-stap methode: ontspanning, vraag formuleren, kaart trekken, voelen, analyseren, integreren.",
+        },
+        {
+          id: 4,
+          title: "Hoofdstuk 4 — Rituelen",
+          progress: 0,
+          content:
+            "Tarot-meditatie, kaart onder je kussen, automatisch schrijven en meer.",
+        },
+        {
+          id: 5,
+          title: "Hoofdstuk 5 — Schaduwwerk",
+          progress: 0,
+          content:
+            "Werken met verdrongen delen, patronen en schaduwaspecten via speciale spreads.",
+        },
+        {
+          id: 6,
+          title: "Hoofdstuk 6 — Integratie",
+          progress: 0,
+          content:
+            "Je leert hoe je tarot en je onderbewuste dagelijks verweeft in je leven.",
+        },
+      ];
 
-function Icon({ name }) {
-  // very small icon helper
-  return <span className="inline-block w-4 text-gray-500">{name}</span>
-}
+      const SAMPLE_SPREADS = [
+        {
+          id: "mirror",
+          name: "Onderbewuste Spiegel",
+          layout: [
+            "Wat ligt onder de oppervlakte?",
+            "Wat wil aandacht?",
+            "Wat helpt mij dit te begrijpen?",
+          ],
+        },
+        {
+          id: "kompas",
+          name: "Innerlijk Kompas",
+          layout: [
+            "Mijn huidige innerlijke staat",
+            "Mijn blokkade",
+            "Mijn onbewuste verlangen",
+            "Wat ik nu nodig heb",
+          ],
+        },
+        {
+          id: "schaduw",
+          name: "Schaduwtransformatie",
+          layout: ["Mijn schaduw", "De oorsprong", "De les", "De integratie"],
+        },
+      ];
 
-function TopNav({ onNavigate, active }) {
-  const items = [
-    { id: 'home', label: 'Start' },
-    { id: 'course', label: 'Cursus' },
-    { id: 'workbook', label: 'Werkboek' },
-    { id: 'daily', label: 'Dagkaart' },
-    { id: 'journal', label: 'Dagboek' },
-    { id: 'settings', label: 'Instellingen' }
-  ]
-  return (
-    <nav className="bg-white shadow p-3 flex gap-3 items-center">
-      <div className="text-2xl font-semibold">🔮 Tarot & Onderbewuste</div>
-      <div className="ml-6 flex gap-2">
-        {items.map(it => (
-          <button key={it.id} onClick={() => onNavigate(it.id)} className={`px-3 py-1 rounded ${active===it.id? 'bg-indigo-600 text-white':'text-gray-700 hover:bg-gray-100'}`}>
-            {it.label}
-          </button>
-        ))}
-      </div>
-      <div className="ml-auto text-sm text-gray-500">Webapp demo — lokaal opgeslagen</div>
-    </nav>
-  )
-}
+      const MOCK_DECK = [
+        { code: "0", name: "De Dwaas" },
+        { code: "I", name: "De Magiër" },
+        { code: "II", name: "De Hogepriesteres" },
+        { code: "III", name: "De Keizerin" },
+        { code: "IV", name: "De Keizer" },
+        { code: "V", name: "De Hogepriester" },
+        { code: "VI", name: "De Geliefden" },
+        { code: "VII", name: "De Zegewagen" },
+        { code: "VIII", name: "Kracht" },
+        { code: "IX", name: "De Kluizenaar" },
+      ];
 
-function Home({ onNavigate, drawCard }) {
-  return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-2">Welkom</h1>
-      <p className="text-gray-700 mb-4">Gebruik deze webapp om je cursus te volgen, oefeningen te doen en je onderbewuste te verkennen met tarot.</p>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 rounded-xl border">
-          <h3 className="font-semibold">Dagelijkse kaart</h3>
-          <p className="text-sm text-gray-600">Trek vandaag een kaart voor een korte reflectie.</p>
-          <button onClick={drawCard} className="mt-3 px-3 py-2 rounded bg-indigo-600 text-white">Trek een kaart</button>
-        </div>
-        <div className="p-4 rounded-xl border">
-          <h3 className="font-semibold">Volg de cursus</h3>
-          <p className="text-sm text-gray-600">Ga door de hoofdstukken één voor één.</p>
-          <button onClick={() => onNavigate('course')} className="mt-3 px-3 py-2 rounded border">Ga naar cursus</button>
-        </div>
-        <div className="p-4 rounded-xl border">
-          <h3 className="font-semibold">Werkboek & Spreads</h3>
-          <p className="text-sm text-gray-600">Doe oefeningen en sla je bevindingen op in je dagboek.</p>
-          <button onClick={() => onNavigate('workbook')} className="mt-3 px-3 py-2 rounded border">Open werkboek</button>
-        </div>
-      </div>
-    </div>
-  )
-}
+      // --- Helpers ---
 
-function Course({ course, onMarkComplete }) {
-  return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Cursus</h2>
-      <div className="space-y-4">
-        {course.map(ch => (
-          <div key={ch.id} className="p-4 border rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-semibold">{ch.title}</div>
-                <div className="text-sm text-gray-600">{ch.content}</div>
+      function randChoice(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+
+      function useLocalStorage(key, initial) {
+        const [state, setState] = useState(() => {
+          try {
+            const v = localStorage.getItem(key);
+            return v ? JSON.parse(v) : initial;
+          } catch (e) {
+            return initial;
+          }
+        });
+
+        useEffect(() => {
+          try {
+            localStorage.setItem(key, JSON.stringify(state));
+          } catch (e) {}
+        }, [key, state]);
+
+        return [state, setState];
+      }
+
+      // --- Components ---
+
+      function TopNav({ onNavigate, active }) {
+        const items = [
+          { id: "home", label: "Start" },
+          { id: "course", label: "Cursus" },
+          { id: "workbook", label: "Werkboek" },
+          { id: "daily", label: "Dagkaart" },
+          { id: "journal", label: "Dagboek" },
+          { id: "settings", label: "Instellingen" },
+        ];
+        return (
+          <nav className="bg-white shadow p-3 flex flex-wrap gap-3 items-center print:hidden">
+            <div className="text-2xl font-semibold">
+              🔮 Tarot & Onderbewuste
+            </div>
+            <div className="ml-0 md:ml-6 flex flex-wrap gap-2">
+              {items.map((it) => (
+                <button
+                  key={it.id}
+                  onClick={() => onNavigate(it.id)}
+                  className={`px-3 py-1 rounded text-sm ${
+                    active === it.id
+                      ? "bg-indigo-600 text-white"
+                      : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  {it.label}
+                </button>
+              ))}
+            </div>
+            <div className="ml-auto flex items-center gap-2 text-xs md:text-sm text-gray-500">
+              <button
+                onClick={() => window.print()}
+                className="px-3 py-1 border rounded text-xs md:text-sm"
+                title="Download als PDF via printfunctie"
+              >
+                Download als PDF
+              </button>
+              <span>tarotalchemist</span>
+            </div>
+          </nav>
+        );
+      }
+
+      function Home({ onNavigate, drawCard }) {
+        return (
+          <div className="p-6">
+            <h1 className="text-3xl font-bold mb-2">
+              Welkom bij jouw Tarot Werkboek
+            </h1>
+            <p className="text-gray-700 mb-4 max-w-2xl">
+              Gebruik deze webapp om je cursus te volgen, oefeningen te doen en
+              je onderbewuste te verkennen met tarot. Alles wat je invult wordt
+              alleen lokaal op je eigen apparaat opgeslagen.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-xl border bg-white">
+                <h3 className="font-semibold">Dagelijkse kaart</h3>
+                <p className="text-sm text-gray-600">
+                  Trek vandaag een kaart voor een korte reflectie met je
+                  onderbewuste.
+                </p>
+                <button
+                  onClick={drawCard}
+                  className="mt-3 px-3 py-2 rounded bg-indigo-600 text-white text-sm"
+                >
+                  Trek een kaart
+                </button>
               </div>
-              <div className="text-right">
-                <div className="text-sm text-gray-500">Voortgang</div>
-                <div className="text-lg font-medium">{Math.round(ch.progress*100)}%</div>
-                <button onClick={() => onMarkComplete(ch.id)} className="mt-2 px-2 py-1 rounded bg-green-600 text-white text-sm">Markeer voltooid</button>
+              <div className="p-4 rounded-xl border bg-white">
+                <h3 className="font-semibold">Volg de cursus</h3>
+                <p className="text-sm text-gray-600">
+                  Doorloop de hoofdstukken één voor één in je eigen tempo.
+                </p>
+                <button
+                  onClick={() => onNavigate("course")}
+                  className="mt-3 px-3 py-2 rounded border text-sm"
+                >
+                  Ga naar cursus
+                </button>
+              </div>
+              <div className="p-4 rounded-xl border bg-white">
+                <h3 className="font-semibold">Werkboek & spreads</h3>
+                <p className="text-sm text-gray-600">
+                  Doe oefeningen, gebruik spreads en sla je inzichten op in je
+                  dagboek.
+                </p>
+                <button
+                  onClick={() => onNavigate("workbook")}
+                  className="mt-3 px-3 py-2 rounded border text-sm"
+                >
+                  Open werkboek
+                </button>
               </div>
             </div>
           </div>
-        ))}
-      </div>
-    </div>
-  )
-}
+        );
+      }
 
-function Workbook({ spreads, onDoExercise }) {
-  return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Werkboek & Spreads</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-4 border rounded-lg">
-          <h3 className="font-semibold mb-2">Oefeningen</h3>
-          <ul className="list-disc pl-5 text-gray-700">
-            <li>Intuïtief Kijken — 60s kaartobserveer</li>
-            <li>Automatisch Schrijven — 3 minuten</li>
-            <li>Tarot-meditatie — Visualiseer de kaart</li>
-            <li>Schaduwwerk — Reflectievragen</li>
-          </ul>
-        </div>
-        <div className="p-4 border rounded-lg">
-          <h3 className="font-semibold mb-2">Spreads</h3>
-          <div className="space-y-2">
-            {spreads.map(s => (
-              <div key={s.id} className="p-3 rounded border flex justify-between items-center">
-                <div>
-                  <div className="font-medium">{s.name}</div>
-                  <div className="text-sm text-gray-600">{s.layout.join(' · ')}</div>
+      function Course({ course, onMarkComplete }) {
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Cursus</h2>
+            <p className="text-gray-600 mb-4 max-w-2xl">
+              Elk hoofdstuk bevat uitleg én nodigt uit tot eigen reflectie.
+              Markeer een hoofdstuk als voltooid wanneer jij voelt dat je de
+              inhoud echt hebt doorleefd.
+            </p>
+            <div className="space-y-4">
+              {course.map((ch) => (
+                <div
+                  key={ch.id}
+                  className="p-4 border rounded-lg bg-white break-inside-avoid"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                    <div>
+                      <div className="font-semibold">{ch.title}</div>
+                      <div className="text-sm text-gray-600 mt-1">
+                        {ch.content}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-gray-500">Voortgang</div>
+                      <div className="text-lg font-medium">
+                        {Math.round(ch.progress * 100)}%
+                      </div>
+                      <button
+                        onClick={() => onMarkComplete(ch.id)}
+                        className="mt-2 px-2 py-1 rounded bg-green-600 text-white text-xs print:hidden"
+                      >
+                        Markeer voltooid
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <button onClick={() => onDoExercise(s)} className="px-2 py-1 border rounded">Gebruik</button>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
-  )
-}
+        );
+      }
 
-function DailyCard({ session, onSave }) {
-  const [note, setNote] = useState('')
-  useEffect(() => setNote(session?.note || ''), [session])
-  if (!session) return <div className="p-6">Trek eerst een kaart vanaf startscherm.</div>
-  return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-2">Dagkaart</h2>
-      <div className="p-4 border rounded-lg mb-4">
-        <div className="text-lg font-semibold">{session.card.name} <span className="text-sm text-gray-500">({session.card.code})</span></div>
-        <div className="text-sm text-gray-600 mt-2">Eerste woord: <strong>{session.firstWord || '-'}</strong></div>
-        <div className="mt-2">Reflectie:</div>
-        <textarea value={note} onChange={e=>setNote(e.target.value)} className="mt-2 w-full p-2 border rounded" rows={4}></textarea>
-        <div className="mt-3 flex gap-2">
-          <button onClick={() => onSave({...session, note})} className="px-3 py-2 bg-indigo-600 text-white rounded">Opslaan in dagboek</button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function Journal({ entries, onDelete }) {
-  return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Mijn Dagboek</h2>
-      <div className="space-y-3">
-        {entries.length===0 && <div className="text-gray-500">Nog geen items opgeslagen.</div>}
-        {entries.map((e, idx) => (
-          <div key={idx} className="p-3 border rounded-lg">
-            <div className="flex justify-between">
-              <div>
-                <div className="font-semibold">{e.card.name} <span className="text-sm text-gray-500">{new Date(e.date).toLocaleString()}</span></div>
-                <div className="text-sm text-gray-600 mt-1">{e.note}</div>
+      function Workbook({ spreads, onDoExercise }) {
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4">
+              Werkboek – Oefeningen & Spreads
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 border rounded-lg bg-white break-inside-avoid">
+                <h3 className="font-semibold mb-2">Oefeningen</h3>
+                <ul className="list-disc pl-5 text-gray-700 text-sm space-y-1">
+                  <li>
+                    <strong>Intuïtief kijken</strong> — 60 seconden naar één
+                    kaart kijken en gevoelens noteren.
+                  </li>
+                  <li>
+                    <strong>Automatisch schrijven</strong> — 3 minuten vanuit de
+                    kaart schrijven zonder te stoppen.
+                  </li>
+                  <li>
+                    <strong>Tarot-meditatie</strong> — stap in de kaart als
+                    landschap en beschrijf je ervaring.
+                  </li>
+                  <li>
+                    <strong>Schaduwwerk</strong> — confronterende vragen bij een
+                    kaart (wat wil ik niet zien?).
+                  </li>
+                </ul>
               </div>
-              <div>
-                <button onClick={() => onDelete(idx)} className="text-sm text-red-600">Verwijder</button>
+              <div className="p-4 border rounded-lg bg-white break-inside-avoid">
+                <h3 className="font-semibold mb-2">Spreads</h3>
+                <div className="space-y-2">
+                  {spreads.map((s) => (
+                    <div
+                      key={s.id}
+                      className="p-3 rounded border flex justify-between items-center bg-gray-50"
+                    >
+                      <div>
+                        <div className="font-medium text-sm">{s.name}</div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          {s.layout.join(" · ")}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => onDoExercise(s)}
+                        className="px-2 py-1 border rounded text-xs print:hidden"
+                      >
+                        Gebruik
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-4">
+              Tip: nooit alleen naar de kaarten kijken, maar vooral naar je
+              gevoelens, beelden en herinneringen die opkomen.
+            </p>
+          </div>
+        );
+      }
+
+      function DailyCard({ session, onSave }) {
+        const [note, setNote] = useState("");
+
+        useEffect(() => {
+          if (session && session.note) setNote(session.note);
+          else setNote("");
+        }, [session]);
+
+        if (!session) {
+          return (
+            <div className="p-6">
+              <p className="text-gray-600">
+                Trek eerst een kaart via het startscherm of kies een spread in
+                het werkboek.
+              </p>
+            </div>
+          );
+        }
+
+        const isSpread = !!session.spreadId;
+
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-2">
+              {isSpread ? session.spreadName : "Dagkaart"}
+            </h2>
+            <div className="p-4 border rounded-lg mb-4 bg-white break-inside-avoid">
+              {!isSpread && (
+                <>
+                  <div className="text-lg font-semibold">
+                    {session.card.name}{" "}
+                    <span className="text-sm text-gray-500">
+                      ({session.card.code})
+                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    {new Date(session.date).toLocaleString("nl-NL")}
+                  </div>
+                </>
+              )}
+
+              {isSpread && (
+                <div className="space-y-2">
+                  <div className="text-xs text-gray-500">
+                    {new Date(session.date).toLocaleString("nl-NL")}
+                  </div>
+                  <div className="grid gap-2">
+                    {session.layout.map((pos, idx) => (
+                      <div
+                        key={idx}
+                        className="border rounded p-2 flex justify-between items-center bg-gray-50"
+                      >
+                        <div>
+                          <div className="text-xs uppercase tracking-wide text-gray-500">
+                            Positie {idx + 1}
+                          </div>
+                          <div className="text-sm font-medium">{pos}</div>
+                        </div>
+                        <div className="text-sm">
+                          {session.cards[idx].name}{" "}
+                          <span className="text-xs text-gray-500">
+                            ({session.cards[idx].code})
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {!isSpread && (
+                <div className="mt-4 text-sm text-gray-700">
+                  <div className="font-semibold mb-1">Reflectievragen:</div>
+                  <ul className="list-disc pl-5 space-y-1 text-xs md:text-sm">
+                    <li>
+                      Wat is het eerste woord dat in je opkomt bij deze kaart?
+                    </li>
+                    <li>
+                      Wat voel je in je lichaam als je naar de kaart kijkt?
+                    </li>
+                    <li>
+                      Waar in je leven herken je het thema van deze kaart?
+                    </li>
+                  </ul>
+                </div>
+              )}
+
+              <div className="mt-4 text-sm">Jouw notities:</div>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                className="mt-2 w-full p-2 border rounded text-sm"
+                rows={6}
+                placeholder="Schrijf hier je intuïtieve indrukken, gevoelens, beelden, inzichten..."
+              ></textarea>
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => onSave({ ...session, note })}
+                  className="px-3 py-2 bg-indigo-600 text-white rounded text-sm print:hidden"
+                >
+                  Opslaan in dagboek
+                </button>
               </div>
             </div>
           </div>
-        ))}
-      </div>
-    </div>
-  )
-}
+        );
+      }
 
-function Settings() {
-  return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Instellingen</h2>
-      <div className="p-4 border rounded">
-        <div className="text-sm text-gray-600">Lokaal opgeslagen demo. Voor gebruikersauthenticatie en cloud-sync is een backend nodig.</div>
-      </div>
-    </div>
-  )
-}
+      function Journal({ entries, onDelete }) {
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Mijn dagboek</h2>
+            {entries.length === 0 && (
+              <div className="text-gray-500">Nog geen items opgeslagen.</div>
+            )}
+            <div className="space-y-3">
+              {entries.map((e, idx) => (
+                <div
+                  key={idx}
+                  className="p-3 border rounded-lg bg-white break-inside-avoid"
+                >
+                  <div className="flex flex-col md:flex-row md:justify-between gap-2">
+                    <div>
+                      <div className="font-semibold text-sm">
+                        {e.spreadName ? e.spreadName : "Dagkaart"}{" "}
+                        <span className="text-xs text-gray-500">
+                          •{" "}
+                          {new Date(e.date).toLocaleString("nl-NL")}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1">
+                        {e.spreadName
+                          ? e.layout
+                              .map(
+                                (pos, i) =>
+                                  `${pos}: ${e.cards[i].name} (${e.cards[i].code})`
+                              )
+                              .join(" | ")
+                          : `${e.card.name} (${e.card.code})`}
+                      </div>
+                      <div className="text-sm text-gray-700 mt-2 whitespace-pre-wrap">
+                        {e.note}
+                      </div>
+                    </div>
+                    <div className="md:text-right print:hidden">
+                      <button
+                        onClick={() => onDelete(idx)}
+                        className="text-xs text-red-600"
+                      >
+                        Verwijder
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
 
-export default function App() {
-  const [route, setRoute] = useState('home')
-  const [course, setCourse] = useLocalStorage('course_v1', SAMPLE_COURSE)
-  const [journal, setJournal] = useLocalStorage('journal_v1', [])
-  const [lastSession, setLastSession] = useLocalStorage('session_v1', null)
+      function Settings() {
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Instellingen & uitleg</h2>
+            <div className="p-4 border rounded bg-white text-sm text-gray-700 space-y-2 break-inside-avoid">
+              <p>
+                Deze webapp is een tarot-werkboek rond het onderbewuste, gemaakt
+                door <strong>tarotalchemist</strong>.
+              </p>
+              <p>
+                Alles wat je invoert wordt alleen in de lokale opslag
+                (localStorage) van je browser bewaard. Het wordt niet naar een
+                server gestuurd.
+              </p>
+              <p>
+                Wil je dit gebruiken voor een echte cursus met deelnemers, dan
+                kun je dit project uitbreiden met:
+              </p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Gebruikersaccounts (bijvoorbeeld via Supabase of Firebase).</li>
+                <li>Een online database om dagboeken en sessies centraal op te slaan.</li>
+                <li>Eigen tarotdeck-afbeeldingen en extra spreads.</li>
+              </ul>
+              <p className="text-xs text-gray-500">
+                Tip: gebruik de knop &ldquo;Download als PDF&rdquo; in de bovenbalk
+                om pagina&apos;s te bewaren of te delen als PDF.
+              </p>
+            </div>
+          </div>
+        );
+      }
 
-  // draw card helper
-  function drawCard() {
-    const card = randChoice(MOCK_DECK)
-    const firstWord = ''
-    const session = { date: new Date().toISOString(), card, firstWord }
-    setLastSession(session)
-    setRoute('daily')
-  }
+      function App() {
+        const [route, setRoute] = useState("home");
+        const [course, setCourse] = useLocalStorage("course_v1", SAMPLE_COURSE);
+        const [journal, setJournal] = useLocalStorage("journal_v1", []);
+        const [lastSession, setLastSession] = useLocalStorage(
+          "session_v1",
+          null
+        );
 
-  function saveSessionToJournal(session) {
-    setJournal([session, ...journal])
-    setLastSession(session)
-    setRoute('journal')
-  }
+        function drawCard() {
+          const card = randChoice(MOCK_DECK);
+          const session = {
+            date: new Date().toISOString(),
+            card,
+          };
+          setLastSession(session);
+          setRoute("daily");
+        }
 
-  function markComplete(chId) {
-    setCourse(course.map(ch => ch.id===chId? {...ch, progress: 1}: ch))
-  }
+        function saveSessionToJournal(session) {
+          const updated = [{ ...session }, ...journal];
+          setJournal(updated);
+          setLastSession(session);
+          setRoute("journal");
+        }
 
-  function doSpread(spread) {
-    // simple: draw as many random cards as layout
-    const cards = spread.layout.map(() => randChoice(MOCK_DECK))
-    const session = { date: new Date().toISOString(), spreadId: spread.id, spreadName: spread.name, layout: spread.layout, cards }
-    setLastSession(session)
-    setRoute('daily')
-  }
+        function markComplete(chId) {
+          setCourse(
+            course.map((ch) =>
+              ch.id === chId ? { ...ch, progress: 1 } : ch
+            )
+          );
+        }
 
-  function deleteJournal(idx) {
-    const x = [...journal]
-    x.splice(idx,1)
-    setJournal(x)
-  }
+        function doSpread(spread) {
+          const cards = spread.layout.map(() => randChoice(MOCK_DECK));
+          const session = {
+            date: new Date().toISOString(),
+            spreadId: spread.id,
+            spreadName: spread.name,
+            layout: spread.layout,
+            cards,
+          };
+          setLastSession(session);
+          setRoute("daily");
+        }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <TopNav onNavigate={setRoute} active={route} />
-      <main className="max-w-5xl mx-auto">
-        {route==='home' && <Home onNavigate={setRoute} drawCard={drawCard} />}
-        {route==='course' && <Course course={course} onMarkComplete={markComplete} />}
-        {route==='workbook' && <Workbook spreads={SAMPLE_SPREADS} onDoExercise={doSpread} />}
-        {route==='daily' && <DailyCard session={lastSession} onSave={saveSessionToJournal} />}
-        {route==='journal' && <Journal entries={journal} onDelete={deleteJournal} />}
-        {route==='settings' && <Settings />}
-      </main>
-      <footer className="text-center py-6 text-gray-500">
-        Gemaakt als webapp-skeleton • Pas content, afbeeldingen en authenticatie aan voor productie.
-      </footer>
-    </div>
-  )
-}
+        function deleteJournal(idx) {
+          const x = [...journal];
+          x.splice(idx, 1);
+          setJournal(x);
+        }
+
+        return (
+          <div className="min-h-screen bg-gray-50 flex flex-col">
+            <TopNav onNavigate={setRoute} active={route} />
+            <main className="max-w-5xl mx-auto w-full flex-1">
+              {route === "home" && (
+                <Home onNavigate={setRoute} drawCard={drawCard} />
+              )}
+              {route === "course" && (
+                <Course course={course} onMarkComplete={markComplete} />
+              )}
+              {route === "workbook" && (
+                <Workbook spreads={SAMPLE_SPREADS} onDoExercise={doSpread} />
+              )}
+              {route === "daily" && (
+                <DailyCard
+                  session={lastSession}
+                  onSave={saveSessionToJournal}
+                />
+              )}
+              {route === "journal" && (
+                <Journal entries={journal} onDelete={deleteJournal} />
+              )}
+              {route === "settings" && <Settings />}
+            </main>
+            <footer className="text-center py-6 text-gray-500 text-xs print:hidden">
+              tarotalchemist · Tarot & Onderbewuste Webapp · Alle rechten bij
+              jou als creator
+            </footer>
+          </div>
+        );
+      }
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+  </body>
+</html>
